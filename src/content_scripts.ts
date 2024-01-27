@@ -1,73 +1,51 @@
-const getElementByXPath = (path: string) => {
-    return document.evaluate(
-        path,
-        document,
-        null,
-        XPathResult.FIRST_ORDERED_NODE_TYPE,
-        null
-    ).singleNodeValue as HTMLElement;
+import {
+    JoinElementSelector,
+    ActivityElementSelector,
+    ActivityListElementSelector,
+    RecordingStartElementSelector,
+} from "./constants"
+
+type GetElementSelector = {
+    selector: string;
+    time: number;
+    callback: (elem: HTMLElement) => void;
 }
 
-const waitGetElementXpath = (xpath: string, time: number, callback: (obj: HTMLElement) => void) => {
-    let obj = getElementByXPath(xpath)
-    if(obj != null){
-        console.log(xpath, "見つかりました")
-        callback(obj)
+const MAX_RETRY_COUNT = 30
+const duration = 1000
+let retry_counter = 0
+
+const waitGetElementByQuerySelector = (args: GetElementSelector) => {
+    retry_counter++;
+    if(retry_counter > MAX_RETRY_COUNT){
+        console.log(retry_counter)
         return
-    } else {
-        console.log(xpath, "見つかりません")
-        setTimeout(() => {
-            waitGetElementXpath(xpath, time, callback)
-        }, time);
     }
-
-}
-
-const waitGetElementsClassName = (selector: string, time: number, callback: (obj: HTMLCollectionOf<HTMLElement>) => void) => {
-    let obj = document.getElementsByClassName(selector) as HTMLCollectionOf<HTMLElement>
-    if(obj != null){
-        console.log(selector, "見つかりました")
-        callback(obj)
+    const {selector, time, callback} = args
+    let elem = document.querySelector(selector) as HTMLElement
+    if(elem != null){
+        console.log(selector, "1見つかりました")
+        callback(elem)
         return
     } else {
         console.log(selector, "見つかりません")
         setTimeout(() => {
-            waitGetElementsClassName(selector, time, callback)
+            waitGetElementByQuerySelector(args)
         }, time);
     }
-
 }
 
-const clickElement = (obj: HTMLElement) => {
-    obj.click()
+const clickElement = (elem: HTMLElement) => {
+    elem.click()
 }
 
-const clickElements = (obj: HTMLCollectionOf<HTMLElement>) => {
-    obj[6].click()
-}
-
-const clickEventListener = (obj: HTMLElement) => {
-    const activityElementPath = "/html/body/div[1]/c-wiz/div/div/div[22]/div[3]/div[11]/div/div/div[3]/div/div[4]/div/div/span/button"
-    // const activityListElementPath = "/html/body/div[1]/c-wiz/div/div/div[22]/div[3]/div[4]/div[2]/div/div[2]/div/div/div[3]/ul/li[7]/span[1]"
-
-    const recordingStartElementPath = "/html/body/div[1]/c-wiz/div/div/div[22]/div[3]/div[4]/div[2]/div/div[2]/div/div[2]/div/p/div[4]/div/button"
-    const recordingAgreeElementPath = "/html/body/div[1]/div[4]/div[2]/div/div[2]/button[2]"
-    obj.addEventListener('click', () => {
-        waitGetElementXpath(activityElementPath, 1000, clickElement)
-        // waitGetXpath(activityListElementPath, 1000, clickElement)
-        waitGetElementsClassName("VfPpkd-rymPhb-pZXsl", 1000, clickElements)
-        waitGetElementXpath(recordingStartElementPath, 1000, clickElement)
-        waitGetElementXpath(recordingAgreeElementPath, 1000, clickElement)
+const clickEventListener = (elem: HTMLElement) => {
+    elem.addEventListener('click', () => {
+        console.log("呼ばれた")
+        waitGetElementByQuerySelector({selector: ActivityElementSelector, time: duration, callback: clickElement})
+        waitGetElementByQuerySelector({selector: ActivityListElementSelector, time: duration, callback: clickElement})
+        waitGetElementByQuerySelector({selector: RecordingStartElementSelector, time: duration, callback: clickElement})
     })
 }
 
-const joinElementPath = "/html/body/div[1]/c-wiz/div/div/div[22]/div[3]/div/div[2]/div[4]/div/div/div[2]/div[1]/div[2]/div[1]/div[1]/button"
-
-var sheets = document.styleSheets
-var sheet = sheets[sheets.length - 1];
-sheet.insertRule(
-    '.class::before { hight: 100px }',
-    sheet.cssRules.length
-  );
-
-waitGetElementXpath(joinElementPath, 1000, clickEventListener)
+waitGetElementByQuerySelector({selector: JoinElementSelector, time: duration, callback: clickEventListener})
