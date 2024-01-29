@@ -3,35 +3,34 @@ import {
     ActivityElementSelector,
     ActivityListElementSelector,
     RecordingStartElementSelector,
+    RecordingElementSelector,
+    AgreeRecordingElementSelector,
 } from "./constants"
 
+const Duration = 1000
+
 type GetElementSelector = {
-    selector: string;
-    time: number;
-    callback: (elem: HTMLElement) => void;
+        selector: string;
+        retry_counter: number;
+        max_retry_count: number;
 }
 
-const MAX_RETRY_COUNT = 30
-const duration = 1000
-let retry_counter = 0
-
-const waitGetElementByQuerySelector = (args: GetElementSelector) => {
+const waitGetElementByQuerySelector = async (args: GetElementSelector): Promise<HTMLElement | null> => {
+    const {selector, max_retry_count} = args
+    let {retry_counter} = args
     retry_counter++;
-    if(retry_counter > MAX_RETRY_COUNT){
+
+    if (retry_counter > max_retry_count) {
         console.log(retry_counter)
-        return
+        return null;
     }
-    const {selector, time, callback} = args
-    let elem = document.querySelector(selector) as HTMLElement
-    if(elem != null){
-        console.log(selector, "1見つかりました")
-        callback(elem)
-        return
+
+    const elem = document.querySelector(selector) as HTMLElement
+    if (elem != null) {
+        return elem;
     } else {
-        console.log(selector, "見つかりません")
-        setTimeout(() => {
-            waitGetElementByQuerySelector(args)
-        }, time);
+        await new Promise(resolve => setTimeout(resolve, Duration));
+        return waitGetElementByQuerySelector({...args, retry_counter: retry_counter});
     }
 }
 
@@ -39,13 +38,46 @@ const clickElement = (elem: HTMLElement) => {
     elem.click()
 }
 
-const clickEventListener = (elem: HTMLElement) => {
-    elem.addEventListener('click', () => {
-        console.log("呼ばれた")
-        waitGetElementByQuerySelector({selector: ActivityElementSelector, time: duration, callback: clickElement})
-        waitGetElementByQuerySelector({selector: ActivityListElementSelector, time: duration, callback: clickElement})
-        waitGetElementByQuerySelector({selector: RecordingStartElementSelector, time: duration, callback: clickElement})
-    })
+const isRecording = (elem: HTMLElement | null): Boolean => {
+    if(elem){
+        return elem.ariaLabel === "この通話は録画されています" ? true : false
+    } else {
+        return false
+    }
 }
 
-waitGetElementByQuerySelector({selector: JoinElementSelector, time: duration, callback: clickEventListener})
+const clickEventListener = async () => {
+    const recordingElem = await waitGetElementByQuerySelector({selector: RecordingElementSelector, retry_counter: 0, max_retry_count: 5});
+    if(!isRecording(recordingElem)) {
+        const activityElem = await waitGetElementByQuerySelector({selector: ActivityElementSelector, retry_counter: 0, max_retry_count: 10});
+        if (activityElem) {
+            clickElement(activityElem);
+        }
+        const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListElementSelector, retry_counter: 0, max_retry_count: 10});
+        if (activityListElem) {
+            clickElement(activityListElem);
+        }
+        const recordingStartElem = await waitGetElementByQuerySelector({selector: RecordingStartElementSelector, retry_counter: 0, max_retry_count: 10});
+        if (recordingStartElem) {
+            clickElement(recordingStartElem);
+        }
+        const agreeRecordingElem = await waitGetElementByQuerySelector({selector: AgreeRecordingElementSelector, retry_counter: 0, max_retry_count: 10})
+        if (agreeRecordingElem) {
+            clickElement(agreeRecordingElem)
+        }
+    }
+    else {
+        console.log("録画中です")
+    }
+}
+
+const init = async () => {
+    const joinElem = await waitGetElementByQuerySelector({selector: JoinElementSelector, retry_counter: 0, max_retry_count: 30});
+    if (joinElem) {
+        joinElem.addEventListener('click', () => {
+            clickEventListener();
+        })
+    }
+}
+
+init();
