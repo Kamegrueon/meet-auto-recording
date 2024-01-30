@@ -1,0 +1,18 @@
+version: "3.7"
+services:
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - $PWD/dist/:/work/dist/
+    command: ["npm", "run", "build"]
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - $PWD/:/work/
+    tty: true
+    stdin_open: true
+    command: ["bash"]
