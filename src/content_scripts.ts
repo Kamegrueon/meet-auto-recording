@@ -4,7 +4,7 @@ import {
     ActivityListElementSelector,
     RecordingStartElementSelector,
     RecordingElementSelector,
-    AgreeRecordingElementSelector,
+    // AgreeRecordingElementSelector,
 } from "./constants"
 
 const Duration = 1000
@@ -61,10 +61,11 @@ const clickEventListener = async () => {
         if (recordingStartElem) {
             clickElement(recordingStartElem);
         }
-        const agreeRecordingElem = await waitGetElementByQuerySelector({selector: AgreeRecordingElementSelector, retry_counter: 0, max_retry_count: 10})
-        if (agreeRecordingElem) {
-            clickElement(agreeRecordingElem)
-        }
+        // 録画開始ボタンはユーザーがクリックするか選択できるようにするため削除
+        // const agreeRecordingElem = await waitGetElementByQuerySelector({selector: AgreeRecordingElementSelector, retry_counter: 0, max_retry_count: 10})
+        // if (agreeRecordingElem) {
+        //     clickElement(agreeRecordingElem)
+        // }
     }
     else {
         console.log("録画中です")
