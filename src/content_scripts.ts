@@ -47,22 +47,22 @@ const isRecording = (elem: HTMLElement | null): Boolean => {
 }
 
 const clickEventListener = async () => {
-    const recordingElem = await waitGetElementByQuerySelector({selector: RecordingElementSelector, retry_counter: 0, max_retry_count: 5});
+    const recordingElem = await waitGetElementByQuerySelector({selector: RecordingElementSelector, retry_counter: 0, max_retry_count: 10});
     if(!isRecording(recordingElem)) {
-        const activityElem = await waitGetElementByQuerySelector({selector: ActivityElementSelector, retry_counter: 0, max_retry_count: 10});
+        const activityElem = await waitGetElementByQuerySelector({selector: ActivityElementSelector, retry_counter: 0, max_retry_count: 20});
         if (activityElem) {
             clickElement(activityElem);
         }
-        const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListElementSelector, retry_counter: 0, max_retry_count: 10});
+        const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListElementSelector, retry_counter: 0, max_retry_count: 20});
         if (activityListElem) {
             clickElement(activityListElem);
         }
-        const recordingStartElem = await waitGetElementByQuerySelector({selector: RecordingStartElementSelector, retry_counter: 0, max_retry_count: 10});
+        const recordingStartElem = await waitGetElementByQuerySelector({selector: RecordingStartElementSelector, retry_counter: 0, max_retry_count: 20});
         if (recordingStartElem) {
             clickElement(recordingStartElem);
         }
         // 録画開始ボタンはユーザーがクリックするか選択できるようにするため削除
-        // const agreeRecordingElem = await waitGetElementByQuerySelector({selector: AgreeRecordingElementSelector, retry_counter: 0, max_retry_count: 10})
+        // const agreeRecordingElem = await waitGetElementByQuerySelector({selector: AgreeRecordingElementSelector, retry_counter: 0, max_retry_count: 20})
         // if (agreeRecordingElem) {
         //     clickElement(agreeRecordingElem)
         // }
