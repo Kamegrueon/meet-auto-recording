@@ -1,9 +1,11 @@
 import {
     JoinElementSelector,
     ActivityElementSelector,
-    ActivityListElementSelector,
     RecordingStartElementSelector,
     RecordingElementSelector,
+    JoinMemberElementSelector,
+    ActivityListSingleJoinElementSelector,
+    ActivityListMultiJoinElementSelector,
     // AgreeRecordingElementSelector,
 } from "./constants"
 
@@ -47,15 +49,23 @@ const isRecording = (elem: HTMLElement | null): Boolean => {
 }
 
 const clickEventListener = async () => {
-    const recordingElem = await waitGetElementByQuerySelector({selector: RecordingElementSelector, retry_counter: 0, max_retry_count: 10});
+    const recordingElem = await waitGetElementByQuerySelector({selector: RecordingElementSelector, retry_counter: 0, max_retry_count: 5});
     if(!isRecording(recordingElem)) {
         const activityElem = await waitGetElementByQuerySelector({selector: ActivityElementSelector, retry_counter: 0, max_retry_count: 20});
         if (activityElem) {
             clickElement(activityElem);
         }
-        const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListElementSelector, retry_counter: 0, max_retry_count: 20});
-        if (activityListElem) {
-            clickElement(activityListElem);
+        const joinMemberElem = await waitGetElementByQuerySelector({selector: JoinMemberElementSelector, retry_counter: 0, max_retry_count: 5});
+        if (joinMemberElem && joinMemberElem.textContent === "1"){
+            const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListSingleJoinElementSelector, retry_counter: 0, max_retry_count: 20});
+            if (activityListElem) {
+                clickElement(activityListElem);
+            }
+        } else {
+            const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListMultiJoinElementSelector, retry_counter: 0, max_retry_count: 20});
+            if (activityListElem) {
+                clickElement(activityListElem);
+            }
         }
         const recordingStartElem = await waitGetElementByQuerySelector({selector: RecordingStartElementSelector, retry_counter: 0, max_retry_count: 20});
         if (recordingStartElem) {
