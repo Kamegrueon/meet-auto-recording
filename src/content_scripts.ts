@@ -3,8 +3,8 @@ import {
     ActivityElementSelector,
     RecordingStartElementSelector,
     RecordingElementSelector,
-    JoinMemberElementSelector,
-    ActivityListSingleJoinElementSelector,
+    // JoinMemberElementSelector,
+    // ActivityListSingleJoinElementSelector,
     ActivityListMultiJoinElementSelector,
     // AgreeRecordingElementSelector,
 } from "./constants"
