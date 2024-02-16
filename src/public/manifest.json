@@ -9,7 +9,7 @@
     "content_scripts": [
         {
             "matches": [
-                "https://meet.google.com/*"
+                "https://meet.google.com/hqd-htwp-maw*"
             ],
             "js": [ "content_scripts.js" ]
         }
