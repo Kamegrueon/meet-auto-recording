@@ -55,18 +55,19 @@ const clickEventListener = async () => {
         if (activityElem) {
             clickElement(activityElem);
         }
-        const joinMemberElem = await waitGetElementByQuerySelector({selector: JoinMemberElementSelector, retry_counter: 0, max_retry_count: 5});
-        if (joinMemberElem && joinMemberElem.textContent === "1"){
-            const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListSingleJoinElementSelector, retry_counter: 0, max_retry_count: 20});
-            if (activityListElem) {
-                clickElement(activityListElem);
-            }
-        } else {
-            const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListMultiJoinElementSelector, retry_counter: 0, max_retry_count: 20});
-            if (activityListElem) {
-                clickElement(activityListElem);
-            }
+        // 参加者が一人のみの場合セレクターが変わる？
+        // const joinMemberElem = await waitGetElementByQuerySelector({selector: JoinMemberElementSelector, retry_counter: 0, max_retry_count: 5});
+        // if (joinMemberElem && joinMemberElem.textContent === "1"){
+        //     const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListSingleJoinElementSelector, retry_counter: 0, max_retry_count: 20});
+        //     if (activityListElem) {
+        //         clickElement(activityListElem);
+        //     }
+        // } else {
+        const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListMultiJoinElementSelector, retry_counter: 0, max_retry_count: 20});
+        if (activityListElem) {
+            clickElement(activityListElem);
         }
+        // }
         const recordingStartElem = await waitGetElementByQuerySelector({selector: RecordingStartElementSelector, retry_counter: 0, max_retry_count: 20});
         if (recordingStartElem) {
             clickElement(recordingStartElem);
