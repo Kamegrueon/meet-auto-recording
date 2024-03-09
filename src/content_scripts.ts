@@ -1,92 +1,96 @@
 import {
+    Duration,
     JoinElementSelector,
     ActivityElementSelector,
-    RecordingStartElementSelector,
+    RecordingStartElementSelectors,
     RecordingElementSelector,
-    JoinMemberElementSelector,
-    ActivityListSingleJoinElementSelector,
-    ActivityListMultiJoinElementSelector,
-    // AgreeRecordingElementSelector,
+    ActivityListJoinElementSelectors,
+    AgreeRecordingElementSelector,
 } from "./constants"
 
-const Duration = 1000
-
 type GetElementSelector = {
-        selector: string;
-        retry_counter: number;
-        max_retry_count: number;
+    selector: string;
+    searchWord: string
+    retry_counter: number;
+    max_retry_count: number;
 }
 
 const waitGetElementByQuerySelector = async (args: GetElementSelector): Promise<HTMLElement | null> => {
-    const {selector, max_retry_count} = args
+    const {selector, searchWord, max_retry_count} = args
     let {retry_counter} = args
-    retry_counter++;
 
-    if (retry_counter > max_retry_count) {
+    if (retry_counter >= max_retry_count) {
         console.log(retry_counter)
         return null;
     }
+    const element = searchElement(selector, searchWord)
 
-    const elem = document.querySelector(selector) as HTMLElement
-    if (elem != null) {
-        return elem;
+    if (element != null) {
+        return element;
     } else {
         await new Promise(resolve => setTimeout(resolve, Duration));
+        retry_counter++;
         return waitGetElementByQuerySelector({...args, retry_counter: retry_counter});
     }
+}
+
+const searchElement = (selector: string, searchWord: string): HTMLElement | null => {
+    const elements = Array.from(document.querySelectorAll(selector)).map(e => e as HTMLElement)
+    let element: HTMLElement | null = null
+    elements.forEach(elem => {
+        console.log(selector, searchWord, elem.textContent)
+        if (elem.textContent === searchWord) element = elem
+    })
+    return element
 }
 
 const clickElement = (elem: HTMLElement) => {
     elem.click()
 }
 
-const isRecording = (elem: HTMLElement | null): Boolean => {
-    if(elem){
-        return elem.ariaLabel === "この通話は録画されています" ? true : false
-    } else {
-        return false
-    }
-}
-
 const clickEventListener = async () => {
-    const recordingElem = await waitGetElementByQuerySelector({selector: RecordingElementSelector, retry_counter: 0, max_retry_count: 5});
-    if(!isRecording(recordingElem)) {
-        const activityElem = await waitGetElementByQuerySelector({selector: ActivityElementSelector, retry_counter: 0, max_retry_count: 20});
+    console.log("Check Recording Now")
+    const recordingElem = await waitGetElementByQuerySelector({selector: RecordingElementSelector, searchWord: "radio_button_checked", retry_counter: 0, max_retry_count: 5});
+    if (recordingElem) {
+        console.log("Recording Now")
+    }
+    else {
+        console.log("Auto Recording Script Start")
+        const activityElem = await waitGetElementByQuerySelector({selector: ActivityElementSelector, searchWord: "themes", retry_counter: 0, max_retry_count: 5});
         if (activityElem) {
             clickElement(activityElem);
         }
-        // 参加者が一人のみの場合セレクターが変わる？
-        // const joinMemberElem = await waitGetElementByQuerySelector({selector: JoinMemberElementSelector, retry_counter: 0, max_retry_count: 5});
-        // if (joinMemberElem && joinMemberElem.textContent === "1"){
-        //     const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListSingleJoinElementSelector, retry_counter: 0, max_retry_count: 20});
-        //     if (activityListElem) {
-        //         clickElement(activityListElem);
-        //     }
-        // } else {
-        const activityListElem = await waitGetElementByQuerySelector({selector: ActivityListMultiJoinElementSelector, retry_counter: 0, max_retry_count: 20});
-        if (activityListElem) {
-            clickElement(activityListElem);
+        for(const selector of ActivityListJoinElementSelectors) {
+            const activityListElem = await waitGetElementByQuerySelector({selector: selector, searchWord: "録画", retry_counter: 0, max_retry_count: 3});
+            if (activityListElem) {
+                console.log("Found Recording Button")
+                clickElement(activityListElem);
+                break
+            }
         }
-        // }
-        const recordingStartElem = await waitGetElementByQuerySelector({selector: RecordingStartElementSelector, retry_counter: 0, max_retry_count: 20});
-        if (recordingStartElem) {
-            clickElement(recordingStartElem);
+        for (const selector of RecordingStartElementSelectors) {
+            const recordingStartElem = await waitGetElementByQuerySelector({selector: selector, searchWord: "録画を開始", retry_counter: 0, max_retry_count: 5});
+            if (recordingStartElem) {
+                console.log("Found Recording Start Button")
+                clickElement(recordingStartElem);
+                break
+            }
         }
-        // 録画開始ボタンはユーザーがクリックするか選択できるようにするため削除
-        // const agreeRecordingElem = await waitGetElementByQuerySelector({selector: AgreeRecordingElementSelector, retry_counter: 0, max_retry_count: 20})
-        // if (agreeRecordingElem) {
-        //     clickElement(agreeRecordingElem)
-        // }
-    }
-    else {
-        console.log("録画中です")
+        const agreeRecordingElem = await waitGetElementByQuerySelector({
+            selector: AgreeRecordingElementSelector, searchWord: "開始", retry_counter: 0, max_retry_count: 5})
+        if (agreeRecordingElem) {
+            console.log("Found Recording Agree Button")
+            clickElement(agreeRecordingElem)
+        }
+        console.log("Auto Recording Script End")
     }
 }
 
 const init = async () => {
-    const joinElem = await waitGetElementByQuerySelector({selector: JoinElementSelector, retry_counter: 0, max_retry_count: 30});
+    const joinElem = await waitGetElementByQuerySelector({ selector: JoinElementSelector, searchWord: "今すぐ参加", retry_counter: 0, max_retry_count: 30 });
     if (joinElem) {
         joinElem.addEventListener('click', () => {
+            console.log("Join Button Click")
             clickEventListener();
         })
     }
